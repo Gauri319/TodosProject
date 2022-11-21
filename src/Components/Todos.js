@@ -18,6 +18,7 @@ export default function Todos({ user }) {
   const [allTodos, setAllTodos] = React.useState([]);
   const [error, setError] = React.useState(false);
   const [edit, setEdit] = React.useState(false);
+  const [editIndex, setEditIndex] = React.useState(-1);
   const navigate = useNavigate();
   // ======================================csss========================================
   const style1 = {
@@ -55,7 +56,7 @@ export default function Todos({ user }) {
     const docSnap = await getDoc(docRef);
 
     const arr = docSnap.data().todos.filter((ele) => {
-      return ele != deledata;
+      return ele !== deledata;
     });
     await setDoc(doc(db, "todos", user.uid), {
       todos: [...arr]
@@ -64,7 +65,7 @@ export default function Todos({ user }) {
   // ====================================================================================
   const addTodos = async (e) => {
     e.preventDefault();
-    if (text == "") {
+    if (text === "") {
       setError(true);
       return;
     }
@@ -94,21 +95,29 @@ export default function Todos({ user }) {
 
   const editTodos = async (data, index) => {
     if (edit) {
-      const docRef = doc(db, "todos", user.uid);
-      const docSnap = await getDoc(docRef);
+      if (index === editIndex) {
+        const docRef = doc(db, "todos", user.uid);
+        const docSnap = await getDoc(docRef);
 
-      const arr = docSnap.data().todos.map((ele, i) => {
-        if (i == index) {
-          return (ele = text);
-        }
-        return ele;
-      });
-      await setDoc(doc(db, "todos", user.uid), {
-        todos: [...arr]
-      });
-      setText("");
+        const arr = docSnap.data().todos.map((ele, i) => {
+          if (i === index) {
+            return (ele = text);
+          }
+          return ele;
+        });
+        await setDoc(doc(db, "todos", user.uid), {
+          todos: [...arr]
+        });
+        setText("");
+        setEditIndex(-1);
+      }
+      else{
+        setText(data);
+        setEditIndex(index);
+      }
     } else {
       setText(data);
+      setEditIndex(index);
     }
     setEdit(!edit);
   };
@@ -201,7 +210,7 @@ export default function Todos({ user }) {
               <Grid item xs={2}>
                 <Checkbox color="secondary" />
               </Grid>
-              <Grid xs={8} item sx={{ overflow: "auto", textAlign: "start" }}>
+              <Grid xs={7} item sx={{ overflow: "auto", textAlign: "start" }}>
                 <p>{data}</p>
               </Grid>
               <Grid item xs={1}>
@@ -211,10 +220,10 @@ export default function Todos({ user }) {
                     editTodos(data, index);
                   }}
                 >
-                  <EditButton edit={edit} />
+                  <EditButton edit={index===editIndex? true:false} />
                 </Button>
               </Grid>
-              <Grid item xs={1}>
+              <Grid item xs={2}>
                 <Button
                   onClick={() => {
                     deleteTodo(data);
