@@ -74,6 +74,7 @@ export default function Todos({ user }) {
         todos: [text, ...allTodos]
       });
       setText("");
+      setEditIndex(-1);
     } catch (err) {
       alert("document not added" + err);
     }
